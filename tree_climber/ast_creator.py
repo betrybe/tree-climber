@@ -65,16 +65,17 @@ class ASTCreator(BaseVisitor):
         while children[i].type != "(":
             i += 1
         i += 1
-        if children[i].type == "declaration":
+        if children[i].type == "declaration" or children[i].type == "lexical_declaration":
             has_init = True
             i += 1
         elif children[i].type == ";":
             has_init = False
             i += 1
         else:
-            assert children[i].type.endswith("_expression") or children[i].type in ("number_literal", "identifier"), (children[i], children[i].type)
+            assert children[i].type.endswith("_expression") or children[i].type in ("number_literal", "identifier"), (children[i], children[i].type) or children[i].type == 'augmented_assignment_expression'
             has_init = True
             i += 1
+
             assert children[i].type == ";"
             i += 1
         # pointing after semicolon
@@ -84,9 +85,13 @@ class ASTCreator(BaseVisitor):
             assert_boolean_expression(children[i])
             has_cond = True
             i += 1
+        if children[i].type.endswith("_expression"):
+            has_init = True
+            i += 1
+        else:
         # pointing at semicolon
-        assert children[i].type == ";", (children[i], children[i].type, children[i].text.decode())
-        i += 1
+            assert children[i].type == ";", (children[i], children[i].type, children[i].text.decode())
+            i += 1
         if children[i].type == ")":
             has_incr = False
         else:
@@ -140,8 +145,7 @@ class ASTCreator(BaseVisitor):
             if parent_id is not None:
                 self.ast.add_edge(parent_id, my_id)
             self.visit_children(n, parent_id=my_id)
-
-
+            
 def test():
     code = """#include <stdio.h>
 int main()
