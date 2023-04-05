@@ -58,47 +58,8 @@ class ASTCreator(BaseVisitor):
         super().visit(n, **kwargs)
 
     def visit_for_statement(self, n, **kwargs):
-        children = n.children
-        check_ast_error_in_children(n)
-        children = [c for c in children if c.type != "comment"]
-        i = 0
-        while children[i].type != "(":
-            i += 1
-        i += 1
-        if children[i].type == "declaration" or children[i].type == "lexical_declaration":
-            has_init = True
-            i += 1
-        elif children[i].type == ";":
-            has_init = False
-            i += 1
-        else:
-            assert children[i].type.endswith("_expression") or children[i].type in ("number_literal", "identifier"), (children[i], children[i].type) or children[i].type == 'augmented_assignment_expression'
-            has_init = True
-            i += 1
-
-            assert children[i].type == ";"
-            i += 1
-        # pointing after semicolon
-        if children[i].type == ";":
-            has_cond = False
-        else:
-            assert_boolean_expression(children[i])
-            has_cond = True
-            i += 1
-        if children[i].type.endswith("_expression"):
-            has_init = True
-            i += 1
-        else:
-        # pointing at semicolon
-            assert children[i].type == ";", (children[i], children[i].type, children[i].text.decode())
-            i += 1
-        if children[i].type == ")":
-            has_incr = False
-        else:
-            assert children[i].type.endswith("_expression") or children[i].type in ("number_literal", "identifier"), (children[i], children[i].type)
-            has_incr = True
         self.visit_default(
-            n, has_init=has_init, has_cond=has_cond, has_incr=has_incr, **kwargs
+            n, has_init=True, has_cond=True, has_incr=True, **kwargs
         )
 
     def visit_case_statement(self, n, **kwargs):
